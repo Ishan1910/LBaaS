@@ -1,0 +1,33 @@
+- hosts:
+   - hypervisor1
+  gather_facts: no
+
+  tasks:
+  - name: Copy script to create load balancers
+    copy:
+      src: scripts/setup_lb_containers.py
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Copy config file for load balancer
+    copy:
+      src: config/init_config.json
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Copy Dockerfile for creating an image for load balancer 
+    copy:
+      src: docker/lb_dockerfile
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Build docker image
+    command: docker build -t lb_ubuntu -f lb_dockerfile .
+    args:
+      chdir: /home/{{ansible_user}}/
+    become: yes
+
+  - name: Run the script to setup load balancer
+    shell: python /home/{{ansible_user}}/setup_lb_containers.py init_config.json
+    become: yes
+

@@ -1,0 +1,17 @@
+FROM ubuntu:16.04
+
+
+RUN apt-get update && apt-get install -y openssh-server \
+    iproute2 \
+    iputils-ping \
+    build-essential \ 
+    python-dev \
+    python-pip \ 
+    nano \
+    git
+RUN apt-get -y --force-yes install iptables  
+RUN apt-get -y --force-yes install ansible  
+RUN apt-get -y --force-yes install sshpass  
+RUN pip install paramiko
+RUN service ssh start
+RUN sed -i '/host_key_checking/s/^#//g' /etc/ansible/ansible.cfg

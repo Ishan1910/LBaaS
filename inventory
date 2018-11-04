@@ -1,0 +1,3 @@
+
+hypervisor1 ansible_host=152.46.16.130 ansible_user=vpahwa
+hypervisor2 ansible_host=152.1.13.145 ansible_user=vpahwa

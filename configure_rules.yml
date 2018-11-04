@@ -1,0 +1,22 @@
+- hosts:
+   - hypervisor1
+  gather_facts: no
+  vars:
+    jsonVar: "{{ lookup('file', 'config/init_config.json') | from_json }}"
+
+  tasks:
+  - name: Copy script to configure rules on load balancer
+    copy:
+      src: scripts/configure_rules.py
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Copy rules file
+    copy:
+      src: config/rules.json
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Run the script to configure rules
+    shell: python /home/{{ansible_user}}/configure_rules.py {{jsonVar['lb_name']}} rules.json
+    become: yes

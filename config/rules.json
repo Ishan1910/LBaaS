@@ -1,0 +1,5 @@
+{
+ "rule_name": {"mode":"rr", "protocol":"tcp", "port":80, "servers":["192.168.10.2","192.168.10.3","192.168.10.4"], "weights":[]},
+ "rule_name2": {"mode":"wrr", "protocol":"udp", "port":33, "servers":["192.168.10.4","192.168.10.3"], "weights":[0.4,0.6]},
+ "rule_name3": {"mode":"rr", "protocol":"icmp", "servers":["192.168.10.2","192.168.10.3"]}
+}

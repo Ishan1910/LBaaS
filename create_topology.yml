@@ -1,0 +1,102 @@
+- hosts:
+   - hypervisor1
+   - hypervisor2
+  gather_facts: no
+
+  ## Package installations
+  tasks:
+  - name: Check for packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - bridge-utils
+      - docker
+      - docker.io
+    become: yes
+
+  - name: Run setup vcl script
+    script: scripts/setup_vcl.sh
+    become: yes
+
+  - name: Copy script to create bridge
+    copy:
+      src: scripts/create_bridge.sh
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+ 
+  - name: Copy script to create vxlan setup
+    copy:
+      src: scripts/create_vxlan_tunnel.sh
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Copy script to create client topology
+    copy:
+      src: scripts/create_client_topo.py
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Copy Dockerfile for creating vm docker image
+    copy:
+      src: docker/vm_dockerfile
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Build docker image
+    command: docker build -t vm_ubuntu -f vm_dockerfile .
+    args:
+      chdir: /home/{{ansible_user}}/
+    become: yes
+
+- hosts:
+   - hypervisor1
+
+  vars_files:
+   - config/topology.yml
+
+  tasks:
+  - name: Run script to create bridge 
+    shell: /home/{{ansible_user}}/create_bridge.sh {{ hypervisor1.bridge_name }}
+    become: yes
+
+  - name: Run script to create vxlan setup
+    command: sh /home/{{ansible_user}}/create_vxlan_tunnel.sh -l {{hostvars["hypervisor1"]["ansible_host"]}} -r {{hostvars["hypervisor2"]["ansible_host"]}} -i {{vxlan.vnid}} -p {{vxlan.port}} -d {{vxlan.phy}} -b {{hypervisor1.bridge_name}}
+    become: yes
+
+  - name: Copy topology file
+    copy:
+      src: config/{{hypervisor1.topo_file}}
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Run script to create VMs according to client topology
+    command: /home/{{ansible_user}}/create_client_topo.py {{ hypervisor1.topo_file }}
+    become: yes
+
+- hosts:
+   - hypervisor2
+
+  vars_files:
+   - config/topology.yml
+
+  tasks:
+  - name: Run script to create bridge
+    command: sh /home/{{ansible_user}}/create_bridge.sh {{ hypervisor2.bridge_name }}
+    become: yes
+
+  - name: Run script to create vxlan tunnel
+    command: sh /home/{{ansible_user}}/create_vxlan_tunnel.sh -l {{hostvars["hypervisor2"]["ansible_host"]}} -r {{hostvars["hypervisor1"]["ansible_host"]}} -i {{vxlan.vnid}} -p {{vxlan.port}} -d {{vxlan.phy}} -b {{hypervisor2.bridge_name}}
+    become: yes
+
+  - name: Copy topology file
+    copy:
+      src: config/{{hypervisor2.topo_file}}
+      dest: /home/{{ansible_user}}/
+      mode: 0777
+
+  - name: Run script to create VMs according to topology file
+    shell: python /home/{{ansible_user}}/create_client_topo.py {{ hypervisor2.topo_file }}
+    become: yes
+
+

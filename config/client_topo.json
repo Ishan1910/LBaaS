@@ -1,0 +1,4 @@
+{
+  "client_1": {"cname":"c1","bridge":"br1","image":"vm_ubuntu","ip":"192.168.10.2/24","gateway_ip":"192.168.10.1"},
+  "client_3": {"cname":"c2","bridge":"br1","image":"vm_ubuntu","ip":"192.168.10.4/24","gateway_ip":"192.168.10.1"}
+}

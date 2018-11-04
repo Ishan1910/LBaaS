@@ -1,0 +1,6 @@
+{
+  "lb_name":"P1",
+  "gateway_ip":"192.168.10.1/24",
+  "bind_dev":"br1"
+}
+

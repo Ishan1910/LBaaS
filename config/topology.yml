@@ -1,0 +1,13 @@
+hypervisor1:
+  bridge_name: br1
+  topo_file: client_topo.json
+
+hypervisor2:
+  bridge_name: br2
+  topo_file: client_topo2.json
+
+vxlan:
+  vnid: 42
+  port: 4789
+  phy: eth1
+
